@@ -10,6 +10,11 @@ on: # This action will trigger when an issue is reopened, opened, or closed, and
     types:
       - opened
 
+permissions: # Required global permissions for all jobs
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs: # The jobs that run in this workflow
 
   label_issues: # the first job is named as label_issues
@@ -58,6 +63,7 @@ jobs: # The jobs that run in this workflow
     permissions:
       issues: write
       contents: read
+      pull-requests: write
     steps:
       - name: Check PR count for the user
         id: pr_check
