@@ -1,14 +1,19 @@
-name: Issue & PR Automation
+name: Label & comment issues #the name of the workflow
 
-on:  # This job handles the events when an issue is opened or reopened.
+on: # This action will trigger when an issue is reopened, opened, or closed, and when a pull request is opened.
   issues:
-    types: [opened, reopened, closed]
+    types:
+      - reopened
+      - opened
+      - closed
   pull_request:
-    types: [opened]
+    types:
+      - opened
 
 jobs: # The jobs that run in this workflow
+
   label_issues: # the first job is named as label_issues
-    if: ${{ github.event_name == 'issues' && github.event.action != 'closed' }} # Only run this job when an issue is opened or reopened, not when it's closed
+    if: ${{ github.event_name == 'issues' && github.event.action != 'closed' }} # Only run on opened/reopened issues
     runs-on: ubuntu-latest # This job will run on the latest version of Ubuntu.
     permissions: # This job requires write access to issues in order to add labels and comment.
       issues: write
@@ -30,9 +35,8 @@ jobs: # The jobs that run in this workflow
           body: | # The body of the comment is a message thanking the user for opening the issue.
            Thanks for opening this issue! We'll take a look as soon as possible.
 
-# Comment on when an issue is closed
   issue_closed:
-    if: ${{ github.event_name == 'issues' && github.event.action == 'closed' }}
+    if: ${{ github.event_name == 'issues' && github.event.action == 'closed' }} # Only run when an issue is closed
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -45,12 +49,11 @@ jobs: # The jobs that run in this workflow
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'The issue is now resolved.'
+              body: '✅ The issue is now resolved.'
             })
 
-# Comment on when an users opens the first pull request 
   comment_on_first_pr:
-    if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' }} # Only run on new PRs
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -61,10 +64,11 @@ jobs: # The jobs that run in this workflow
         uses: actions/github-script@v6
         with:
           script: |
-            const { data: result } = await github.rest.search.issuesAndPullRequests({
+            const result = await github.rest.search.issuesAndPullRequests({
               q: `is:pr author:${context.payload.pull_request.user.login} repo:${context.repo.owner}/${context.repo.repo}`
             });
-            return { pr_count: result.total_count };
+            core.setOutput("pr_count", result.data.total_count);
+
       - name: Comment on first pull request
         if: ${{ steps.pr_check.outputs.pr_count == '1' }}
         uses: actions/github-script@v6
@@ -74,5 +78,5 @@ jobs: # The jobs that run in this workflow
               issue_number: context.payload.pull_request.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "Congratulations on opening your first pull request!"
-            });
+              body: "🎉 Congratulations on opening your first pull request!"
+            })
