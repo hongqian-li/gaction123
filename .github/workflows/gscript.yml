@@ -1,5 +1,6 @@
-name: Label & comment issues #the name of the workflow
-on: # This action will trigger when an issue is reopened or opened.
+name: Label & comment issues # The name of the workflow
+
+on: # This action will trigger when an issue is reopened, opened, or closed, and when a pull request is opened.
   issues:
     types:
       - reopened
@@ -8,15 +9,15 @@ on: # This action will trigger when an issue is reopened or opened.
   pull_request:
     types:
       - opened
-  
+
 jobs: # The jobs that run in this workflow
-  label_issues: # the first job is named as label_issues
+  label_issues: # The first job is named as label_issues
     runs-on: ubuntu-latest # This job will run on the latest version of Ubuntu.
     permissions: # This job requires write access to issues in order to add labels and comment.
       issues: write
     steps: # The "steps" section contains the individual tasks that will be performed in this job.
-      - name: attach label to issues # The name of the step
-        uses: actions/github-script@v6 # This step uses the "actions/github-script" action to execute a script that adds labels to the issue.
+      - name: Attach label to issues # The name of the step
+        uses: actions/github-script@v7 # Using the latest version of the action
         with:
           script: | # The script calls the GitHub REST API to add labels to the issue.
             github.rest.issues.addLabels({
@@ -25,14 +26,13 @@ jobs: # The jobs that run in this workflow
               repo: context.repo.repo,
               labels: ["issue", "fix"]
             })
-      - name: Comment on new issue #this is another step that comments on the issue 
+      - name: Comment on new issue # This is another step that comments on the issue
         uses: peter-evans/create-or-update-comment@v1 # This step uses the "peter-evans/create-or-update-comment" action to create or update a comment on the issue.
         with:
           issue-number: ${{ github.event.issue.number }} # The issue number is obtained from the context of the event that triggered the action.
           body: | # The body of the comment is a message thanking the user for opening the issue.
-           Thanks for opening this issue! We'll take a look as soon as possible.
+            Thanks for opening this issue! We'll take a look as soon as possible.
 
-# Comment on when an issue is closed
   issue_closed:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
@@ -50,14 +50,13 @@ jobs: # The jobs that run in this workflow
               body: '✅ The issue is now closed. Thank you!'
             })
 
-# Comment on when an users opens the first pull request 
   comment_on_first_pr:
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
       - name: Comment on first pull request
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const pr_number = context.payload.pull_request.number;
