@@ -1,19 +1,18 @@
 name: Issue & PR Automation
 
-on:
+on:  # This job handles the events when an issue is opened or reopened.
   issues:
     types: [opened, reopened, closed]
   pull_request:
     types: [opened]
 
-jobs:
-  # This job handles the events when an issue is opened or reopened.
-  label_issues:
-    if: ${{ github.event_name == 'issues' && github.event.action != 'closed' }}
-    runs-on: ubuntu-latest
-    permissions:
+jobs: # The jobs that run in this workflow
+  label_issues: # the first job is named as label_issues
+    if: ${{ github.event_name == 'issues' && github.event.action != 'closed' }} # Only run this job when an issue is opened or reopened, not when it's closed
+    runs-on: ubuntu-latest # This job will run on the latest version of Ubuntu.
+    permissions: # This job requires write access to issues in order to add labels and comment.
       issues: write
-    steps:
+    steps: # The "steps" section contains the individual tasks that will be performed in this job.
       - name: attach label to issues # The name of the step
         uses: actions/github-script@v6 # This step uses the "actions/github-script" action to execute a script that adds labels to the issue.
         with:
@@ -31,7 +30,7 @@ jobs:
           body: | # The body of the comment is a message thanking the user for opening the issue.
            Thanks for opening this issue! We'll take a look as soon as possible.
 
-  # This job comments when an issue is closed.
+# Comment on when an issue is closed
   issue_closed:
     if: ${{ github.event_name == 'issues' && github.event.action == 'closed' }}
     runs-on: ubuntu-latest
@@ -49,7 +48,7 @@ jobs:
               body: 'The issue is now resolved.'
             })
 
-  # This job congratulates a user when they open their first pull request.
+# Comment on when an users opens the first pull request 
   comment_on_first_pr:
     if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' }}
     runs-on: ubuntu-latest
